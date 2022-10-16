@@ -34,7 +34,7 @@ After installation we gonna install the post
       
   + check synchronization status of the node
   
-      seid status 2>&1 | jq .SyncInfo
+        seid status 2>&1 | jq .SyncInfo
       
  # Data snapshot 
  
