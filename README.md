@@ -114,23 +114,23 @@
       --chain-id $SEI_CHAIN_ID
       
       
- # Delegate to yourself
+ ### Delegate to yourself
 
        seid tx staking delegate $(seid keys show wallet --bech val -a) 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
 
- # Delegate
+ ### Delegate
 
        seid tx staking delegate <TO_VALOPER_ADDRESS> 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
 
- # Redelegate
+ ### Redelegate
 
        seid tx staking redelegate $(seid keys show wallet --bech val -a) <TO_VALOPER_ADDRESS> 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
 
- # Unbond
+ ### Unbond
 
        seid tx staking unbond $(seid keys show wallet --bech val -a) 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
 
- # Send
+ ### Send
 
        seid tx bank send wallet <TO_WALLET_ADDRESS> 1000000usei --from wallet --chain-id atlantic-1   
        
@@ -146,27 +146,27 @@
        --from=$WALLET
 
 
-#  Get Validator Info
+### Get Validator Info
 
       seid status 2>&1 | jq .ValidatorInfo
 
-#  Get Catching Up
+###  Get Catching Up
 
       seid status 2>&1 | jq .SyncInfo.catching_up
 
-#  Get Latest Height
+###  Get Latest Height
 
       seid status 2>&1 | jq .SyncInfo.latest_block_height
 
-#  Get Peer
+###  Get Peer
 
       echo $(seid tendermint show-node-id)'@'$(curl -s ifconfig.me)':'$(cat $HOME/.sei/config/config.toml | sed -n '/Address to listen for incoming connection/{n;p;}' | sed 's/.*://; s/".*//')
 
-#  Reset Node
+###  Reset Node
 
       seid tendermint unsafe-reset-all --home $HOME/.sei --keep-addr-book
 
-#  Remove Node
+###  Remove Node
 
       sudo systemctl stop seid && sudo systemctl disable seid && sudo rm /etc/systemd/system/seid.servi     
       
