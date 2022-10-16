@@ -3,7 +3,8 @@
 ### 1. Run a new full node on a new server and backup (priv_validator_key.json from the old machine
 seed phrase of your wallet )
 
- To setup full node you can follow my guide [sei node setup for testnet](https://github.com/kj89/testnet\_manuals/blob/main/sei/README.md)
+
+ To setup full node you can follow my guide [sei node setup for testnet]()
 
 ### 2. Confirm that you have the recovery seed phrase information for the active key running on the old machine
 
