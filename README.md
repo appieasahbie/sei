@@ -146,5 +146,77 @@
        --from=$WALLET
 
 
+#  Get Validator Info
+
+      seid status 2>&1 | jq .ValidatorInfo
+
+#  Get Catching Up
+
+      seid status 2>&1 | jq .SyncInfo.catching_up
+
+#  Get Latest Height
+
+      seid status 2>&1 | jq .SyncInfo.latest_block_height
+
+#  Get Peer
+
+      echo $(seid tendermint show-node-id)'@'$(curl -s ifconfig.me)':'$(cat $HOME/.sei/config/config.toml | sed -n '/Address to listen for incoming connection/{n;p;}' | sed 's/.*://; s/".*//')
+
+#  Reset Node
+
+      seid tendermint unsafe-reset-all --home $HOME/.sei --keep-addr-book
+
+#  Remove Node
+
+      sudo systemctl stop seid && sudo systemctl disable seid && sudo rm /etc/systemd/system/seid.servi     
+      
+#  Service Management
+
+### Reload Services
+
+     sudo systemctl daemon-reload
+
+### Enable Service
+
+     sudo systemctl enable seid
+
+### Disable Service
+
+     sudo systemctl disable seid
+
+### Run Service
+
+     sudo systemctl start seid
+
+### Stop Service
+
+     sudo systemctl stop seid
+
+### Restart Service
+
+     sudo systemctl restart seid
+
+### Check Service Status
+
+     sudo systemctl status seid
+
+### Check Service Logs
+
+     sudo journalctl -u seid -f --no-hostname -o cat      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      
    
