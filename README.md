@@ -74,7 +74,7 @@
 # Create wallet
  + (Please save all keys on your notepad)
  
-     seid keys add $WALLET
+        seid keys add $WALLET
      
 # To recover your old wallet use this command
 
