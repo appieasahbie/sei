@@ -1,189 +1,113 @@
-# 𝚂𝚎𝚒𝚗𝚊𝚖𝚒 𝚃𝚎𝚜𝚗𝚎𝚝 𝚃𝚞𝚝𝚘𝚛𝚒𝚊𝚕
+﻿\# Migrate your validator to another machine
 
+\### 1. Run a new full node on a new machine
 
-![see](https://user-images.githubusercontent.com/108979536/196036172-30688c84-2ecc-4dab-bd2b-4e40aacd40c6.jpeg)
+To setup full node you can follow my guide [sei node setup for testnet](https://github.com/kj89/testnet\_manuals/blob/main/sei/README.md)
 
+\### 2. Confirm that you have the recovery seed phrase information for the active key running on the old machine
 
+\#### To backup your key
 
-# Hardware Requirements
+\```
 
- + Minimum Hardware Requirements
- 
-    3x CPUs; the faster clock speed the better
-    
-    4GB RAM
-    
-    80GB Disk
-    
- 
- + Recommended Hardware Requirements
- 
-    4x CPUs; the faster clock speed the better
-    
-    8GB RAM
-    
-    200GB of storage (SSD or NVME)
+seid keys export mykey
 
-# Use our script for quick installation
+\```
 
-      wget -O sei.sh https://raw.githubusercontent.com/appieasahbie/sei/main/sei.sh && chmod +x sei.sh && ./sei.sh
+\> \_This prints the private key that you can then paste into the file `mykey.backup`\_
 
-After installation we gonna install the post
+\#### To get list of keys
 
-      source $HOME/.bash_profile
-      
-  + check synchronization status of the node
-  
-        seid status 2>&1 | jq .SyncInfo
-      
- # Data snapshot 
- 
- 
-      sudo apt update
-      sudo apt install lz4 -y
-      sudo systemctl stop seid
-      seid tendermint unsafe-reset-all --home $HOME/.sei --keep-addr-book
+\```
 
-      cd $HOME/.sei
-      rm -rf data
+seid keys list
 
-      SNAP_NAME=$(curl -s https://snapshots1-testnet.nodejumper.io/sei-testnet/ | egrep -o ">atlantic-1.*\.tar.lz4" | tr -d ">")
-      curl https://snapshots1-testnet.nodejumper.io/sei-testnet/${SNAP_NAME} | lz4 -dc - | tar -xf -
+\```
 
-      sudo systemctl restart seid
-      sudo journalctl -u seid -f --no-hostname -o cat
-      
-# Create wallet (save everything after enter the command on your notepad )
-  
-      seid keys add $WALLET
-      
-  ( if you have already old wallet you can recover it with this command)
-  
-       seid keys add $WALLET --recover
-       
-# Add wallet and valoper address and load variables into the system
+\### 3. Recover the active key of the old machine on the new machine
 
-          SEI_WALLET_ADDRESS=$(seid keys show $WALLET -a)
-          SEI_VALOPER_ADDRESS=$(seid keys show $WALLET --bech val -a)
-          echo 'export SEI_WALLET_ADDRESS='${SEI_WALLET_ADDRESS} >> $HOME/.bash_profile
-          echo 'export SEI_VALOPER_ADDRESS='${SEI_VALOPER_ADDRESS} >> $HOME/.bash_profile
-          source $HOME/.bash_profile    
-          
-# Fund your wallet
-  ( go to faucet channel on sei discord and put this command bellow )
-  
-          !faucet <YOUR_WALLET_ADDRESS>
-          
- After you recive the tokens we gonna create a validator
- 
-          seid tx staking create-validator \
-          --amount 1000000usei \
-          --from $WALLET \
-          --commission-max-change-rate "0.01" \
-          --commission-max-rate "0.2" \
-          --commission-rate "0.07" \
-          --min-self-delegation "1" \
-          --pubkey  $(seid tendermint show-validator) \
-          --moniker $NODENAME \
-          --chain-id $SEI_CHAIN_ID
-       
-           
-  # Basic Firewall security
+\#### This can be done with the mnemonics
 
-     ( ufw status it`s inactive open this ports and active firewall)
-     
-     
-           sudo ufw default allow outgoing
-           sudo ufw default deny incoming
-           sudo ufw allow ssh/tcp
-           sudo ufw limit ssh/tcp
-           sudo ufw allow ${SEI_PORT}656,${SEI_PORT}660/tcp
-           sudo ufw enable
-           
-           
-  # Unjail Validator
+\```
 
-           seid tx slashing unjail --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y 
-           
-  #   Jail Reason
+seid keys add mykey --recover
 
-           seid query slashing signing-info $(seid tendermint show-validator)
+\```
 
-  #   List All Active Validators
+\#### Or with the backup file `mykey.backup` from the previous step
 
-           seid q staking validators -oj --limit=3000 | jq '.validators[] | select(.status=="BOND_STATUS_BONDED")' | jq -r '(.tokens|tonumber/pow(10; 6)|floor|tostring) + " \t " + .description.moniker' | sort -gr | nl
+\```
 
-  #   List All Inactive Validators
+seid keys import mykey mykey.backup
 
-           seid q staking validators -oj --limit=3000 | jq '.validators[] | select(.status=="BOND_STATUS_UNBONDED")' | jq -r '(.tokens|tonumber/pow(10; 6)|floor|tostring) + " \t " + .description.moniker' | sort -gr | nl
+\```
 
-  #   View Validator Details
+\### 4. Wait for the new full node on the new machine to finish catching-up
 
-           seid q staking validator $(seid keys show wallet --bech val -a)      
-           
-  #   Withdraw Rewards From All Validators
+\#### To check synchronization status
 
-           seid tx distribution withdraw-all-rewards --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
+\```
 
-  #   Withdraw Commission And Rewards From Your Validator
+seid status 2>&1 | jq .SyncInfo
 
-           seid tx distribution withdraw-rewards $(seid keys show wallet --bech val -a) --commission --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
+\```
 
-  
-  #   Delegate to yourself
+\> \_`catching\_up` should be equal to `false`\_
 
-           seid tx staking delegate $(seid keys show wallet --bech val -a) 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
+\### 5. After the new node has caught-up, stop the validator node
 
-  #   Delegate
+\> \_To prevent double signing, you should stop the validator node before stopping the new full node to ensure the new node is at a greater block height than the validator node\_
 
-           seid tx staking delegate <TO_VALOPER_ADDRESS> 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
+\> \_If the new node is behind the old validator node, then you may double-sign blocks\_
 
-  #   Redelegate
+\#### Stop and disable service on old machine
 
-           seid tx staking redelegate $(seid keys show wallet --bech val -a) <TO_VALOPER_ADDRESS> 1000000usei -         
-           
-  #   Unbond
+\```
 
-           seid tx staking unbond $(seid keys show wallet --bech val -a) 1000000usei --from wallet --chain-id atlantic-1 --gas-prices 0.1usei --gas-adjustment 1.5 --gas auto -y
+sudo systemctl stop seid
 
-  #   Send
+sudo systemctl disable seid
 
-           seid tx bank send wallet <TO_WALLET_ADDRESS> 1000000usei --from wallet --chain-id atlantic-1 --gas-price
-        
-        
-        
-  #  Service Management
+\```
 
-   + Reload Services
+\> \_The validator should start missing blocks at this point\_
 
-          sudo systemctl daemon-reload
+\### 6. Stop service on new machine
 
-   + Enable Service
+\```
 
-          sudo systemctl enable seid
+sudo systemctl stop seid
 
-   + Disable Service
+\```
 
-          sudo systemctl disable seid
+\### 7. Move the validator's private key from the old machine to the new machine
 
-   + Run Service
+\#### Private key is located in: `~/.seid/config/priv\_validator\_key.json`
 
-          sudo systemctl start seid
+\> \_After being copied, the key `priv\_validator\_key.json` should then be removed from the old node's config directory to prevent double-signing if the node were to start back up\_
 
-   + Stop Service
+\```
 
-          sudo systemctl stop seid
+sudo mv ~/.seid/config/priv\_validator\_key.json ~/.seid/bak\_priv\_validator\_key.json
 
-   + Restart Service
+\```
 
-          sudo systemctl restart seid
+\### 8. Start service on a new validator node
 
-   + Check Service Status
+\```
 
-          sudo systemctl status seid
+sudo systemctl start seid
 
-   + Check Service Logs
+\```
 
-          sudo journalctl -u seid -f --no-hostname -o cat      
-        
-    
+\> \_The new node should start signing blocks once caught-up\_
+
+\### 9. Make sure your validator is not jailed
+
+\#### To unjail your validator
+
+\```
+
+seid tx slashing unjail --chain-id $SEI\_CHAIN\_ID --from mykey --gas=auto -y
+
+\```
