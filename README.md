@@ -205,7 +205,7 @@
      sudo journalctl -u seid -f --no-hostname -o cat      
      
      
-     
+# [Buy me a cup of coffee.](https://paypal.me/AbdelAkridi?country.x=NL&locale.x=en_US)     
      
      
      
